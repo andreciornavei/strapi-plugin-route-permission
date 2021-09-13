@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-route-permission",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A strapi plugin that make use of routes to set the users permissions config, preventing yours route permissions to loss state from database.",
   "dependencies": {},
   "author": {

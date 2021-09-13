@@ -8,13 +8,24 @@ const injectPluginName = (route, pluginName) => {
 }
 
 module.exports = strapi => {
+
   return {
+    beforeInitialize() {
+      if (!strapi.config.middleware.load.after.includes("route-permission")) {
+        strapi.config.middleware.load.after.push("route-permission")
+      }
+    },
     async initialize() {
 
       try {
-        // Remove everything from permission with type 'application'
-        await strapi.query('permission', 'users-permissions').model.where('type', 'application').destroy()
-      } catch (error) { console.log("No 'application' permissions to destroy...") }
+        // Update all permissions to enabled = false
+        await strapi.query('permission', 'users-permissions').model.where('type', 'application').save({
+          enabled: 0
+        }, {
+          method: "update",
+          patch: true
+        })
+      } catch (error) { console.log("No 'application' permissions to update...") }
 
       // Build route authentication role based on route 'config.permission' attribute
       // if it does not contains 'config.permission' assume Forbidden Access
@@ -32,6 +43,7 @@ module.exports = strapi => {
           _.set(roles, path, [...(_.get(roles, path, [])), action])
         }
       });
+
 
       // ********************************************************* //
       // Allow specific authenticated routes for users-permissions //
@@ -52,17 +64,18 @@ module.exports = strapi => {
                 }
                 const permission = await strapi.query('permission', 'users-permissions').findOne(payloadId)
                 if (permission) {
-                  console.log(`updating permission ::: ${role.type}.application.${controller}.${action}`)
                   await strapi.query('permission', 'users-permissions').update({ id: permission.id }, { enabled: true })
+                  console.log(`updating permission ::: ${role.type}.application.${controller}.${action} ::: ID=${permission.id}`)
                 } else {
-                  console.log(`generating permission ::: ${role.type}.application.${controller}.${action}`)
-                  await strapi.query('permission', 'users-permissions').create({ ...payloadId, enabled: true })
+                  const pId = await strapi.query('permission', 'users-permissions').create({ ...payloadId, enabled: true })
+                  console.log(`generating permission ::: ${role.type}.application.${controller}.${action} ::: ID=${pId.id}`)
                 }
               }
             }
           }
         }
       }
+
 
     },
   };
