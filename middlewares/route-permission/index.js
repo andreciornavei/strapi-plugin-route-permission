@@ -40,7 +40,7 @@ module.exports = strapi => {
         const [controller, action] = _.get(route, "handler").split(".")
         if (_.get(route, 'config.permission')) {
           const path = `${_.get(route, 'config.permission')}.${_.get(route, "plugin")}.${controller}`
-          _.set(roles, path, [...(_.get(roles, path, [])), action])
+          _.set(roles, path, [...(_.get(roles, path, [])), String(action).toLowerCase()])
         }
       });
 
@@ -56,19 +56,20 @@ module.exports = strapi => {
             // re-create role for each plugin
             for (const controller in roles[role.type][plugin]) {
               for (const action of roles[role.type][plugin][controller]) {
+                const actionLowerCase = String(action).toLowerCase()
                 const payloadId = {
                   type: plugin,
                   controller: controller,
-                  action: action,
+                  action: actionLowerCase,
                   role: role.id
                 }
                 const permission = await strapi.query('permission', 'users-permissions').findOne(payloadId)
                 if (permission) {
                   await strapi.query('permission', 'users-permissions').update({ id: permission.id }, { enabled: true })
-                  console.log(`updating permission ::: ${role.type}.application.${controller}.${action} ::: ID=${permission.id}`)
+                  console.log(`updating permission ::: ${role.type}.application.${controller}.${actionLowerCase} ::: ID=${permission.id}`)
                 } else {
                   const pId = await strapi.query('permission', 'users-permissions').create({ ...payloadId, enabled: true })
-                  console.log(`generating permission ::: ${role.type}.application.${controller}.${action} ::: ID=${pId.id}`)
+                  console.log(`generating permission ::: ${role.type}.application.${controller}.${actionLowerCase} ::: ID=${pId.id}`)
                 }
               }
             }
