@@ -21,7 +21,7 @@ yarn add strapi-plugin-route-permission
 ---
 ## ✨ &nbsp; _Getting Started_
 
-In many cases, you will lost your database data while your application is in development, but strapi has a tiny problem, for each route action you want to get permission for authenticated or public role, you need to configure it over strapi panel, and if you reset your database for any reason, every configuration is lost, and after some time, you can forgot about what route needs to target public or authenticated role, broking your logic application and taking your time to reconfigure everything agin.
+In many cases, you will lost your database data while your application is in development, but strapi has a tiny problem, for each route action you want to get permission for authenticated or public role, you need to configure it over strapi panel, and if you reset your database for any reason, every configuration is lost, and after some time, you can forgot about what route needs to target public or authenticated role, broking your logic application and taking your time to reconfigure everything again.
 
 Because this little detail, this plugin implements a simple route config rule, the `permission`, that can receive the default strapi roles (`public`, `authenticated` or `both`) or any other role that you have been created. With that, every time yours server startup, it read all your routes and recreate the `permissions` for target `roles` on database, keeping your application always updated.
 
