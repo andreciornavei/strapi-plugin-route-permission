@@ -39,8 +39,16 @@ module.exports = strapi => {
       _.forEach(routes, route => {
         const [controller, action] = _.get(route, "handler").split(".")
         if (_.get(route, 'config.permission')) {
-          const path = `${_.get(route, 'config.permission')}.${_.get(route, "plugin")}.${controller}`
-          _.set(roles, path, [...(_.get(roles, path, [])), String(action).toLowerCase()])
+          // treat for permission target to multi or single roles 
+          let target_roles = []
+          const config_permission = _.get(route, 'config.permission')
+          if (_.isString(config_permission)) target_roles = [config_permission]
+          else if (_.isArray(config_permission)) target_roles = config_permission
+          // attatch permission to target roles
+          for (const target_role of target_roles) {
+            const path = `${target_role}.${_.get(route, "plugin")}.${controller}`
+            _.set(roles, path, [...(_.get(roles, path, [])), String(action).toLowerCase()])
+          }
         }
       });
 

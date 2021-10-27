@@ -21,9 +21,9 @@ yarn add strapi-plugin-route-permission
 ---
 ## ✨ &nbsp; _Getting Started_
 
-In many cases, you will lost your database data while your application is in development, but strapi has a tiny problem, for each route you want to get private or public permission, you need to configure it over strapi panel, and if you reset your database for any reason, every configuration is lost, and after some time, you can forgot waht route needs to be public or private, broking your logic application and taking your time to reconfigure everything agin.
+In many cases, you will lost your database data while your application is in development, but strapi has a tiny problem, for each route action you want to get permission for authenticated or public role, you need to configure it over strapi panel, and if you reset your database for any reason, every configuration is lost, and after some time, you can forgot about what route needs to target public or authenticated role, broking your logic application and taking your time to reconfigure everything agin.
 
-Because this little detail, this plugin implements a simple route config rule, the `permission`, that can receive one of the default strapi permissions (`public` or `authenticated`) or any other permission that you have been created. With that, every time yours server startup, it read all your routes and recreate the permissions on database, keeping your application always updated.
+Because this little detail, this plugin implements a simple route config rule, the `permission`, that can receive the default strapi roles (`public`, `authenticated` or `both`) or any other role that you have been created. With that, every time yours server startup, it read all your routes and recreate the `permissions` for target `roles` on database, keeping your application always updated.
 
 ### Example:
 _See the property on `routes.*.config.permission` parameter._
@@ -36,6 +36,23 @@ _See the property on `routes.*.config.permission` parameter._
       "handler": "plan.find",
       "config": {
         "permission": "authenticated",
+        "policies": []
+      }
+    }
+  ]
+}
+```
+
+_You can also, set more then one role to be target by your route permission:_
+```json
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/plans",
+      "handler": "plan.find",
+      "config": {
+        "permission": ["authenticated", "public"],
         "policies": []
       }
     }
