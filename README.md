@@ -21,12 +21,12 @@ yarn add strapi-plugin-route-permission
 ---
 ## ✨ &nbsp; _Getting Started_
 
-In many cases, you will lost your database data while your application is in development, but strapi has a tiny problem, for each route action you want to get permission for authenticated or public role, you need to configure it over strapi panel, and if you reset your database for any reason, every configuration is lost, and after some time, you can forgot about what route needs to target public or authenticated role, broking your logic application and taking your time to reconfigure everything again.
+In many cases, you will lost your database data while your application is in development, but strapi has a tiny problem, for each route action you want to get permission for a role, you need to configure it over strapi panel, and if you reset your database for any reason, every configuration is lost, and after some time, you can forgot about what route needs to target some specific role, broking your logic application and taking your time to reconfigure everything again.
 
-Because this little detail, this plugin implements a simple route config rule, the `permission`, that can receive the default strapi roles (`public`, `authenticated` or `both`) or any other role that you have been created. With that, every time yours server startup, it read all your routes and recreate the `permissions` for target `roles` on database, keeping your application always updated.
+Because this little detail, this plugin implements a simple route config rule, the `roles`, that can receive the default strapi roles (`public`, `authenticated` or `both`) or any other role that you should want to create. With that, every time yours server startup, it read all your routes and recreate the `permissions` for target `roles` on database, keeping your application always updated.
 
 ### Example:
-_See the property on `routes.*.config.permission` parameter._
+_See the property on `routes.*.config.roles` parameter._
 ```json
 {
   "routes": [
@@ -35,7 +35,7 @@ _See the property on `routes.*.config.permission` parameter._
       "path": "/plans",
       "handler": "plan.find",
       "config": {
-        "permission": "authenticated",
+        "roles": "authenticated",
         "policies": []
       }
     }
@@ -52,7 +52,7 @@ _You can also, set more then one role to be target by your route permission:_
       "path": "/plans",
       "handler": "plan.find",
       "config": {
-        "permission": ["authenticated", "public"],
+        "roles": ["authenticated", "public"],
         "policies": []
       }
     }
@@ -61,6 +61,9 @@ _You can also, set more then one role to be target by your route permission:_
 ```
 
 ### Result:
+
+_* If the specified role does not exists on database, it will be created automatically._
+
 _On strapi startup it reconfigure your permission table_
 
 ![](./docs/strapi_startup_example.png)

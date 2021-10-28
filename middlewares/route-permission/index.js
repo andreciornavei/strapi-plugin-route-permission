@@ -36,22 +36,37 @@ module.exports = strapi => {
         routes.push(...pluginRoutes)
       })
 
-      _.forEach(routes, route => {
+      // _.forEach(routes, route => {
+      for (const route of routes) {
         const [controller, action] = _.get(route, "handler").split(".")
-        if (_.get(route, 'config.permission')) {
+        if (_.get(route, 'config.roles') || _.get(route, 'config.permission')) {
           // treat for permission target to multi or single roles 
           let target_roles = []
-          const config_permission = _.get(route, 'config.permission')
-          if (_.isString(config_permission)) target_roles = [config_permission]
-          else if (_.isArray(config_permission)) target_roles = config_permission
+          const config_roles = _.get(route, "config.roles", _.get(route, 'config.permission'))
+          if (_.isString(config_roles)) target_roles = [config_roles]
+          else if (_.isArray(config_roles)) target_roles = config_roles
           // attatch permission to target roles
           for (const target_role of target_roles) {
+            // check if role already was registered on 'roles' variable
+            if (!Object.keys(roles).includes(target_role)) {
+              // check if role exists on database
+              const role = await strapi.query('role', 'users-permissions').findOne({ type: target_role })
+              // create the role if it does not exists
+              if (!role) {
+                console.log("generating new role::", target_role)
+                await strapi.query("role", "users-permissions").create({
+                  name: target_role,
+                  description: `Default role given to ${target_role} user.`,
+                  type: target_role
+                })
+              }
+            }
+            // create path for controller permission and attach to roles
             const path = `${target_role}.${_.get(route, "plugin")}.${controller}`
             _.set(roles, path, [...(_.get(roles, path, [])), String(action).toLowerCase()])
           }
         }
-      });
-
+      }
 
       // ********************************************************* //
       // Allow specific authenticated routes for users-permissions //
@@ -84,8 +99,6 @@ module.exports = strapi => {
           }
         }
       }
-
-
     },
   };
 };
