@@ -110,6 +110,12 @@ module.exports = strapi => {
           // iterate plugins
           for (const plugin in roles[role.type]) {
             // re-create role for each plugin
+
+            // bursting system
+            let burst = [];
+            const burstSize = 10;
+
+            // Create / Update Logic
             for (const controller in roles[role.type][plugin]) {
               for (const action of roles[role.type][plugin][controller]) {
                 const controllerLowerCase = String(controller).toLowerCase()
@@ -120,13 +126,30 @@ module.exports = strapi => {
                   action: actionLowerCase,
                   role: role.id
                 }
+
                 const permission = await strapi.query('permission', 'users-permissions').findOne(payloadId)
                 if (permission) {
-                  await strapi.query('permission', 'users-permissions').update({ id: permission.id }, { enabled: true })
-                  console.log(`updating permission ::: ${role.type}.${plugin}.${controllerLowerCase}.${actionLowerCase} ::: ID=${permission.id}`)
+
+                  // await strapi.query('permission', 'users-permissions').update({ id: permission.id }, { enabled: true })
+                  // console.log(`updating permission ::: ${role.type}.${plugin}.${controllerLowerCase}.${actionLowerCase} ::: ID=${permission.id}`)
+
+                  const promise = strapi.query('permission', 'users-permissions').update({ id: permission.id }, { enabled: true })
+                    .then(cId => console.log(`updating permission ::: ${role.type}.${plugin}.${controllerLowerCase}.${actionLowerCase} ::: ID=${cId.id}`));
+                  burst.push(promise);
                 } else {
-                  const pId = await strapi.query('permission', 'users-permissions').create({ ...payloadId, enabled: true })
-                  console.log(`generating permission ::: ${role.type}.${plugin}.${controllerLowerCase}.${actionLowerCase} ::: ID=${pId.id}`)
+
+                  // const pId = await strapi.query('permission', 'users-permissions').create({ ...payloadId, enabled: true })
+                  // console.log(`generating permission ::: ${role.type}.${plugin}.${controllerLowerCase}.${actionLowerCase} ::: ID=${pId.id}`)
+
+                  const promise = strapi.query('permission', 'users-permissions').create({ ...payloadId, enabled: true })
+                    .then(pId => console.log(`generating permission ::: ${role.type}.${plugin}.${controllerLowerCase}.${actionLowerCase} ::: ID=${pId.id}`))
+                  burst.push(promise);
+                }
+
+                // Burst Control
+                if (burst.length >= burstSize) {
+                  await Promise.all(burst);
+                  burst = []
                 }
               }
             }
